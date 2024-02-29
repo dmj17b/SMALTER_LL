@@ -1,10 +1,9 @@
-# Project Name
+# Low Level Wheel Leg Robot Control
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Description
 
-A brief description of your project.
+Low level control for robot
 
 ## Table of Contents
 

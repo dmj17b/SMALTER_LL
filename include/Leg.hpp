@@ -2,18 +2,14 @@
 
 
 
+
+
+// 
 class Leg {
 public:
     // Constructor
     Leg();
 
-    // Encoders:
-    int kneeEncPinA = 2;
-    int kneeEncPinB = 3;
-    int hipEncPinA = 4;
-    int hipEncPinB = 5;
-    Encoder kneeEnc_ = Encoder(kneeEncPinA, kneeEncPinB);
-    Encoder hipEnc_ = Encoder(hipEncPinA, hipEncPinB);
 
     // Member functions
     float desKneePos_ = 0; // Desired knee position
@@ -36,8 +32,8 @@ public:
 
 
     // Axis-axis link lengths
-    float L1_ = 0.65;
-    float L2_ = 0.8;
+    float L1_ = 0.65;   // Length of thigh
+    float L2_ = 0.8;    // Length of shin
 
     // Gear ratios
     float kneeGR_ = (1)/(380);
@@ -45,10 +41,11 @@ public:
 
     void setLegLengths(float l1, float l2); // Set the leg lengths
     void setDesKneePos(float pos); // Set the desired knee position
-    void setKneeEncoderPins(int pinA, int pinB); // Set the knee encoder pins
-    void setHipEncoderPins(int pinA, int pinB); // Set the hip encoder pins
-
     void controlLeg(); // Control the leg 
+    void kneePosControl(float desKneePos); // Control the knee
+    void kneeVelControl(float desKneeVel); // Control the knee velocity
+    void hipPosControl(float desHipPos); // Control the hip
+    
 
 
 
