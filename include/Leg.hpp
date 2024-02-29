@@ -33,7 +33,7 @@ public:
     float kneeKd_ = 0.1; // Knee derivative gain
     float hipKp_ = 0.1; // Hip proportional gain
     float hipKd_ = 0.1; // Hip derivative gain
-    
+
 
     // Axis-axis link lengths
     float L1_ = 0.65;
@@ -47,6 +47,8 @@ public:
     void setDesKneePos(float pos); // Set the desired knee position
     void setKneeEncoderPins(int pinA, int pinB); // Set the knee encoder pins
     void setHipEncoderPins(int pinA, int pinB); // Set the hip encoder pins
+
+    void controlLeg(); // Control the leg 
 
 
 
