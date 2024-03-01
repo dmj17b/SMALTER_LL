@@ -1,4 +1,3 @@
-#include <Encoder.h>
 #include <Arduino.h>
 #include <Motor.hpp>
 
@@ -16,6 +15,7 @@ public:
     Motor kneeMotor = Motor(); // Knee motor
     Motor hipMotor = Motor(); // Hip motor
     Motor wheelMotors = Motor(); // Wheel motors
+
     // Member functions
     float desKneePos_ = 0; // Desired knee position
     float desKneeVel_ = 0; // Desired knee velocity
