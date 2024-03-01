@@ -12,9 +12,9 @@ public:
     Leg();
 
     // Motors:
-    Motor kneeMotor = Motor(); // Knee motor
-    Motor hipMotor = Motor(); // Hip motor
-    Motor wheelMotors = Motor(); // Wheel motors
+    Motor kneeMotor_ = Motor(); // Knee motor
+    Motor hipMotor_ = Motor(); // Hip motor
+    Motor wheelMotors_ = Motor(); // Wheel motors
 
     // Member functions
     float desKneePos_ = 0; // Desired knee position

@@ -19,14 +19,24 @@ void Motor::init(int INA, int INB, int ENCA, int ENCB){
 void Motor::fwdDrive(int dutyCycle){
     int EN = this->EN_;      // The enable pin
     int DIR = this->DIR_;   // The direction pin
-    digitalWrite(DIR, HIGH*reverse_);   // Set the direction
+    if(reverse_){
+        digitalWrite(DIR, LOW);   // Set the direction
+    }
+    else{
+        digitalWrite(DIR, HIGH);   // Set the direction
+    }
     analogWrite(EN, dutyCycle); // Set the speed
 }
 
 void Motor::revDrive(int dutyCycle){
     int EN = this->EN_;     // The enable pin
     int DIR = this->DIR_;   // The direction pin
-    digitalWrite(DIR, LOW*reverse_);   // Set the direction
+    if(reverse_){
+        digitalWrite(DIR, HIGH);   // Set the direction
+    }
+    else{
+        digitalWrite(DIR, LOW);   // Set the direction
+    }
     analogWrite(EN, dutyCycle); // Set the speed
 }
 
