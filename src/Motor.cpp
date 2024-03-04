@@ -95,15 +95,18 @@ void Motor::setGains(float Kp, float Ki, float Kd)
 void Motor::posControl(float desPos)
 {
     float pos = this->shaftPos();
-    float vel = pos-prevShaftPos_;
+    shaftVel_ = pos-prevShaftPos_;
+
+    
     float error = desPos - shaftPos();
-    int u = Kp_*error;
+    float velError = 0 - shaftVel_;
+    int u = Kp_*error + Kd_*velError;
     u = constrain(u, -255, 255);
     if(u>=0){
         fwdDrive(u);
     }
     else{
-        revDrive(-u);
+        revDrive(u);
     }
     this->prevShaftPos_ = pos;
 }

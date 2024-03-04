@@ -29,6 +29,7 @@ public:
     float Ki_ = 0.0; // Integral gain
     float Kd_ = 0.0; // Derivative gain
     float prevShaftPos_= 0.0;
+    float shaftVel_ = 0.0;
 
     float gearReduction_ = (360)/(12*380.0); // The gear reduction of the motor
 

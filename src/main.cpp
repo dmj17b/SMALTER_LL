@@ -9,6 +9,9 @@ using namespace TeensyTimerTool;
 #define kneeMotor_ENCB 19
 
 
+// Desired motor positions:
+float kneeDesPos = 180;
+
 // Create a timer object to control the control loop
 PeriodicTimer controlTimer;
 
@@ -20,14 +23,19 @@ Motor kneeMotor = Motor(kneeMotor_EN, kneeMotor_DIR, kneeMotor_ENCA, kneeMotor_E
 
 // Main control function to run every 5ms
 void controlFunc(){
-  kneeMotor.posControl(180);
+  kneeMotor.posControl(kneeDesPos);
+  Serial.print("Shaft Position: ");
+  Serial.print(kneeMotor.shaftPos());
+  Serial.print("  Shaft Velocity: ");
+  Serial.println(kneeMotor.shaftVel_);
+
 }
 
 // Setup function
 void setup()
 {
   Serial.begin(115200);                   // Boot up the serial monitor
-  kneeMotor.setGains(3.0, 0.0, 0.0);      // Set PID gains for kneeMotor
+  kneeMotor.setGains(3.0, 0.0, 1.0);      // Set PID gains for kneeMotor
   controlTimer.begin(controlFunc, 5000);  // Set the control function to run every 5ms
 
 }
@@ -35,8 +43,9 @@ void setup()
 // Main loop
 void loop()
 {
-  Serial.println(kneeMotor.shaftPos()-kneeMotor.prevShaftPos_); 
-  delay(100);
-
+  kneeDesPos = 180;
+  delay(1000);
+  kneeDesPos = 0;
+  delay(1000);
 }
 
