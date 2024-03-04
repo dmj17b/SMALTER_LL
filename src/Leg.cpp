@@ -7,8 +7,8 @@ Leg::Leg(){
 
 
 void Leg::setLegLengths(float l1, float l2){
-    Leg::L1_ = l1;
-    Leg::L2_ = l2;
+    this->L1_ = l1;
+    this->L2_ = l2;
 }
 
 
