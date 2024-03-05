@@ -43,6 +43,8 @@ void setup()
 // Main loop
 void loop()
 {
+  // Changing the desired position of the knee motor every 1 second
+  // This is just to test the control loop
   kneeDesPos = 180;
   delay(1000);
   kneeDesPos = 0;
