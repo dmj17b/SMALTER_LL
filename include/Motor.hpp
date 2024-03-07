@@ -8,7 +8,6 @@ class Motor
 public:
     // Constructor
     Motor();
-
     Motor(int EN, int DIR, int ENCA, int ENCB); // Constructor with pin numbers (use this one. Init function not working properly)
     ~Motor();
     
@@ -39,7 +38,7 @@ public:
     void fwdDrive(int speed);                        // Drive the motor forward
     void revDrive(int speed);                        // Drive the motor in reverse
     void init(int INA, int INB, int ENCA, int ENCB); // Initialize the motor
-    int motorPos();                                  // Get the position of the motor
+    int motorPos();                                  // Get the position of the motor encoder (in ticks)
     void setGains(float Kp, float Ki, float Kd);      // Set the PID gains
     void posControl(float desPos);                    // Control the position of the motor
     float shaftPos();                                // Get the position of the motor in degrees
