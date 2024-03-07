@@ -20,15 +20,9 @@ PeriodicTimer controlTimer;
 // Create a motor object for the knee motor
 Motor kneeMotor = Motor(kneeMotor_EN, kneeMotor_DIR, kneeMotor_ENCA, kneeMotor_ENCB);
 
-
 // Main control function to run every 5ms
 void controlFunc(){
   kneeMotor.posControl(kneeDesPos);
-  Serial.print("Shaft Position: ");
-  Serial.print(kneeMotor.shaftPos());
-  Serial.print("  Shaft Velocity: ");
-  Serial.println(kneeMotor.shaftVel_);
-
 }
 
 // Setup function
@@ -43,9 +37,7 @@ void setup()
 // Main loop
 void loop()
 {
+  // Update desired joint positions here:
   kneeDesPos = 180;
-  delay(1000);
-  kneeDesPos = 0;
-  delay(1000);
 }
 
