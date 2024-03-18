@@ -132,5 +132,5 @@ void Motor::posControl(float desPos)
     else{
         revDrive(u);    // Drive the motor
     }
-    prevShaftPos_ = pos;
+    prevShaftPos_ = pos;    // Update the previous position
 }
