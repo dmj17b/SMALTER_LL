@@ -33,6 +33,9 @@ void controlFunc(){
   kneeMotor.posControl(kneeDesPos);
 }
 
+// Function to run every time we receive a message from the master
+// it will come in the form (joint/angle) ex: (1/180) means set desired hip
+// angle to 180 degrees
 void receiveEvent(int howMany) {
 
   int i = 0;  // i starts at 0 when we are reading the first piece of data
