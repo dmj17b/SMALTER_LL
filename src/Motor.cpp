@@ -134,3 +134,4 @@ void Motor::posControl(float desPos)
     }
     prevShaftPos_ = pos;    // Update the previous position
 }
+

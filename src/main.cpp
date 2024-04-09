@@ -8,22 +8,22 @@ using namespace TeensyTimerTool;
 // NOT CORRECT YET
 #define m1_EN 23
 #define m1_DIR 22
-#define m1_ENCA 18
-#define m1_ENCB 19
+#define m1_ENCA 19
+#define m1_ENCB 18
 
-#define m2_EN 21
-#define m2_DIR 20
-#define m2_ENCA 16
-#define m2_ENCB 17
+#define m2_EN 4
+#define m2_DIR 3
+#define m2_ENCA 0
+#define m2_ENCB 1
 
-#define m3_EN 15
-#define m3_DIR 14
-#define m3_ENCA 10
-#define m3_ENCB 11
+#define m3_EN 20
+#define m3_DIR 15
+#define m3_ENCA 16
+#define m3_ENCB 17
 
-#define m4_EN 13
-#define m4_DIR 12
-#define m4_ENCA 6
+#define m4_EN 6
+#define m4_DIR 5
+#define m4_ENCA 2
 #define m4_ENCB 7
 
 
@@ -121,5 +121,7 @@ void loop()
   m3DesPos = 0;
   m4DesPos = 0;
   delay(1000);
+  Serial.print("M4: ");
+  Serial.println(m4.motorPos());
 }
 
