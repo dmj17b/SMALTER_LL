@@ -18,6 +18,8 @@ Motor::Motor(int EN, int DIR, int ENCA, int ENCB){
     this->ENCB_ = ENCB;
     pinMode(EN_, OUTPUT);
     pinMode(DIR_, OUTPUT);
+    pinMode(ENCA_, INPUT); 
+    pinMode(ENCB_, INPUT);
     encoder_ = new Encoder(ENCA_, ENCB_);
 }
 
@@ -49,7 +51,7 @@ void Motor::fwdDrive(int dutyCycle)
     {
         digitalWrite(DIR, HIGH); // Set the direction
     }
-    analogWrite(EN, dutyCycle); // Set the speed
+    analogWrite(EN, abs(dutyCycle)); // Set the speed
 }
 
 void Motor::revDrive(int dutyCycle)
@@ -64,7 +66,7 @@ void Motor::revDrive(int dutyCycle)
     {
         digitalWrite(DIR, LOW); // Set the direction
     }
-    analogWrite(EN, dutyCycle); // Set the speed
+    analogWrite(EN, abs(dutyCycle)); // Set the speed
 }
 
 // Only to be used to fix the direction of the motor if it is reversed

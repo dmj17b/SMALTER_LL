@@ -6,25 +6,25 @@ using namespace TeensyTimerTool;
 
 // Motor pin definitions
 // NOT CORRECT YET
-#define m1_EN 23
-#define m1_DIR 22
-#define m1_ENCA 19
-#define m1_ENCB 18
+#define m1_EN 5
+#define m1_DIR 6
+#define m1_ENCA 2
+#define m1_ENCB 7
 
-#define m2_EN 4
-#define m2_DIR 3
+#define m2_EN 3
+#define m2_DIR 4
 #define m2_ENCA 0
 #define m2_ENCB 1
 
-#define m3_EN 20
-#define m3_DIR 15
-#define m3_ENCA 16
-#define m3_ENCB 17
+#define m3_EN 23
+#define m3_DIR 22
+#define m3_ENCA 18
+#define m3_ENCB 19
 
-#define m4_EN 6
-#define m4_DIR 5
-#define m4_ENCA 2
-#define m4_ENCB 7
+#define m4_EN 15
+#define m4_DIR 20
+#define m4_ENCA 16
+#define m4_ENCB 17
 
 
 // Variables for holding desired motor positions:
@@ -96,15 +96,15 @@ void receiveEvent(int howMany) {
 // Setup function
 void setup()
 {
-  Wire.begin(80);                  // Join the I2C bus as a slave with address 80
+  // Wire.begin(80);                  // Join the I2C bus as a slave with address 80
   Serial.begin(115200);            // Boot up the serial monitor
   m1.setGains(3.0, 0.0, 1.0);      // Set PID gains for m1
   m2.setGains(3.0, 0.0, 1.0);      // Set PID gains for m2
   m3.setGains(3.0, 0.0, 1.0);      // Set PID gains for m3
   m4.setGains(3.0, 0.0, 1.0);      // Set PID gains for m4
   controlTimer.begin(controlFunc, 5000);  // Set the control function to run every 5ms
-  Wire.onRequest(sendUpdate);
-  Wire.onReceive(receiveEvent);
+  // Wire.onRequest(sendUpdate);
+  // Wire.onReceive(receiveEvent);
 
 }
 
@@ -116,12 +116,16 @@ void loop()
   m3DesPos = 180;
   m4DesPos = 180;
   delay(1000);
+    Serial.print("M3: ");
+  Serial.println(m3.shaftPos());
   m1DesPos = 0;
   m2DesPos = 0;
   m3DesPos = 0;
   m4DesPos = 0;
   delay(1000);
-  Serial.print("M4: ");
-  Serial.println(m4.motorPos());
+  Serial.print("M3: ");
+  Serial.println(m3.shaftPos());
+
+
 }
 
