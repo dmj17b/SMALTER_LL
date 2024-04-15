@@ -5,7 +5,6 @@ using namespace TeensyTimerTool;
 #include <Wire.h>
 
 // Motor pin definitions
-// NOT CORRECT YET
 #define m1_EN 5
 #define m1_DIR 6
 #define m1_ENCA 2
@@ -42,12 +41,8 @@ Motor m2 = Motor(m2_EN, m2_DIR, m2_ENCA, m2_ENCB);
 Motor m3 = Motor(m3_EN, m3_DIR, m3_ENCA, m3_ENCB);
 Motor m4 = Motor(m4_EN, m4_DIR, m4_ENCA, m4_ENCB);
 
-// 
-void sendUpdate(){
-  Wire.write("4");
-  Wire.write("/");
-  Wire.write("hello");
-}
+
+void updateLeg(int leg_address, int joint, float angle);
 
 // Main control function to run every 5ms
 void controlFunc(){
@@ -65,11 +60,11 @@ void receiveEvent(int howMany) {
   int i = 0;  // i starts at 0 when we are reading the first piece of data
   String data[2] = {"",""}; // Create an array to store the data (two items)
 
-  while (Wire.available()) { // loop through all but the last
+  while (Wire2.available()) { // loop through all but the last
 
     // i = 0 when we are reading the first piece of data
     if(i == 0){
-      byte c = Wire.read(); // receive byte as a character
+      byte c = Wire2.read(); // receive byte as a character
       // If we see the delimeter, move to the next piece of data
       if(c == '/'){
         i = 1;
@@ -81,13 +76,15 @@ void receiveEvent(int howMany) {
     // i = 1 when we are reading the second piece of data
     // This time we are reading in the float value.
     if(i == 1){
-      char c = Wire.read();
+      char c = Wire2.read();
       data[i]+=c;
     }
 
   }
+  // Convert the first piece of data to an integer
   int d1 = data[0].toInt();
   Serial.println(d1);
+  // Convert the second piece of data to a float
   float angVal = data[1].toFloat();
   Serial.println(angVal);
   Serial.println(millis());
@@ -96,36 +93,32 @@ void receiveEvent(int howMany) {
 // Setup function
 void setup()
 {
-  // Wire.begin(80);                  // Join the I2C bus as a slave with address 80
+  Wire2.begin(80);                 // Join the I2C bus as a slave with address 80
   Serial.begin(115200);            // Boot up the serial monitor
   m1.setGains(3.0, 0.0, 1.0);      // Set PID gains for m1
   m2.setGains(3.0, 0.0, 1.0);      // Set PID gains for m2
   m3.setGains(3.0, 0.0, 1.0);      // Set PID gains for m3
   m4.setGains(3.0, 0.0, 1.0);      // Set PID gains for m4
   controlTimer.begin(controlFunc, 5000);  // Set the control function to run every 5ms
-  // Wire.onRequest(sendUpdate);
-  // Wire.onReceive(receiveEvent);
+  // Wire2.onRequest(sendUpdate);
+  Wire2.onReceive(receiveEvent);
 
 }
 
 // Main loop
 void loop()
 {
-  m1DesPos = 180;
-  m2DesPos = 180;
-  m3DesPos = 180;
-  m4DesPos = 180;
-  delay(1000);
-    Serial.print("M3: ");
-  Serial.println(m3.shaftPos());
-  m1DesPos = 0;
-  m2DesPos = 0;
-  m3DesPos = 0;
-  m4DesPos = 0;
-  delay(1000);
-  Serial.print("M3: ");
-  Serial.println(m3.shaftPos());
 
 
 }
 
+// Function to update the angle of a joint in a leg through I2C
+void updateLeg(int leg_address, int joint, float angle){
+  char b[8];
+  dtostrf(angle, 4, 2, b);
+  Wire2.beginTransmission(leg_address);
+  Wire2.write(joint);
+  Wire2.write('/');
+  Wire2.write(b);
+  Wire2.endTransmission();
+}
