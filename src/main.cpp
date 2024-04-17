@@ -1,8 +1,13 @@
 #include <Arduino.h>
 #include <Leg.hpp>
 #include "TeensyTimerTool.h"
+#include <PulsePosition.h>
 using namespace TeensyTimerTool;
 #include <Wire.h>
+
+PulsePositionInput ppi;
+#define PPM_IN_PIN 9
+
 
 // Motor pin definitions
 // NOT CORRECT YET
@@ -51,10 +56,22 @@ void sendUpdate(){
 
 // Main control function to run every 5ms
 void controlFunc(){
-  m1.posControl(m1DesPos);
-  m2.posControl(m2DesPos);
-  m3.posControl(m3DesPos);
-  m4.posControl(m4DesPos);
+  //m1.posControl(m1DesPos);
+  //m2.posControl(m2DesPos);
+  //m3.posControl(m3DesPos);
+  //m4.posControl(m4DesPos);
+}
+
+
+// Function to update the angle of a joint in a leg through I2C
+void updateLeg(int leg_address, int joint, float angle){
+  char b[8];
+  dtostrf(angle, 4, 2, b);
+  Wire2.beginTransmission(leg_address);
+  Wire2.write(joint);
+  Wire2.write('/');
+  Wire2.write(b);
+  Wire2.endTransmission();
 }
 
 // Function to run every time we receive a message from the master
@@ -103,6 +120,7 @@ void setup()
   m3.setGains(3.0, 0.0, 1.0);      // Set PID gains for m3
   m4.setGains(3.0, 0.0, 1.0);      // Set PID gains for m4
   controlTimer.begin(controlFunc, 5000);  // Set the control function to run every 5ms
+  ppi.begin(PPM_IN_PIN); // Initialize the pulse position input object
   // Wire.onRequest(sendUpdate);
   // Wire.onReceive(receiveEvent);
 
@@ -111,20 +129,49 @@ void setup()
 // Main loop
 void loop()
 {
-  m1DesPos = 180;
-  m2DesPos = 180;
-  m3DesPos = 180;
-  m4DesPos = 180;
-  delay(1000);
-    Serial.print("M3: ");
-  Serial.println(m3.shaftPos());
-  m1DesPos = 0;
-  m2DesPos = 0;
-  m3DesPos = 0;
-  m4DesPos = 0;
-  delay(1000);
-  Serial.print("M3: ");
-  Serial.println(m3.shaftPos());
+  Serial.println(ppi.read(5));
+
+  // If safety switch is detected, kill motors.
+  if(ppi.read(5)<1500){
+    m1.kill();
+    m2.kill();
+    m3.kill();
+    m4.kill();
+    
+  }
+  // If safety switch is not detected, run normal control
+  else if (ppi.read(5)>1500){
+    
+    int FB_RJ = map(ppi.read(1), 1000, 2000, -255, 255);
+    int LR_RJ = map(ppi.read(2), 1000, 2000, -255, 255);
+
+    int leftWheel = -FB_RJ + LR_RJ;
+    int rightWheel = -FB_RJ - LR_RJ;
+
+    //Constrain duty cycles to -255 to 255
+    leftWheel = constrain(leftWheel, -255, 255);
+    rightWheel = constrain(rightWheel, -255, 255);
+
+    if(leftWheel<0){
+      m1.fwdDrive(leftWheel);
+      m4.fwdDrive(leftWheel);
+    }
+    else if(leftWheel>0){
+      m1.revDrive(abs(leftWheel));
+      m4.revDrive(abs(leftWheel));
+    }
+    
+    if(rightWheel<0){
+      m2.fwdDrive(rightWheel);
+      m3.fwdDrive(rightWheel);
+    }
+    else if(rightWheel>0){
+      m2.revDrive(abs(rightWheel));
+      m3.revDrive(abs(rightWheel));
+    }
+  }
+    
+
 
 
 }

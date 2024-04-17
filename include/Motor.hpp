@@ -37,6 +37,7 @@ public:
     void setGearReduction(float gearReduction);       // Set the gear reduction of the motor
     void fwdDrive(int speed);                        // Drive the motor forward
     void revDrive(int speed);                        // Drive the motor in reverse
+    void kill();
     void init(int INA, int INB, int ENCA, int ENCB); // Initialize the motor
     int motorPos();                                  // Get the position of the motor encoder (in ticks)
     void setGains(float Kp, float Ki, float Kd);      // Set the PID gains

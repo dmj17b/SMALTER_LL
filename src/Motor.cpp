@@ -69,6 +69,14 @@ void Motor::revDrive(int dutyCycle)
     analogWrite(EN, abs(dutyCycle)); // Set the speed
 }
 
+void Motor::kill(){
+    int EN = this->EN_;   // The enable pin
+    int DIR = this->DIR_; // The direction pin
+    analogWrite(EN, 0); // Set the speed
+    digitalWrite(DIR, LOW); // Set the direction
+    Serial.println("Motor Killed");
+}
+
 // Only to be used to fix the direction of the motor if it is reversed
 void Motor::setReverse()
 {
