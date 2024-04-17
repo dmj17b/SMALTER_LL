@@ -37,10 +37,10 @@ PulsePositionInput ppi;
 
 
 // Variables for holding desired motor positions:
-float m1DesPos = 180;
-float m2DesPos = 180;
-float m3DesPos = 180;
-float m4DesPos = 180;
+float m1DesPos = 0;
+float m2DesPos = 0;
+float m3DesPos = 0;
+float m4DesPos = 0;
 
 // Create a timer object to control the control loop
 PeriodicTimer controlTimer;
@@ -51,12 +51,6 @@ Motor m2 = Motor(m2_EN, m2_DIR, m2_ENCA, m2_ENCB);
 Motor m3 = Motor(m3_EN, m3_DIR, m3_ENCA, m3_ENCB);
 Motor m4 = Motor(m4_EN, m4_DIR, m4_ENCA, m4_ENCB);
 
-// 
-void sendUpdate(){
-  Wire.write("4");
-  Wire.write("/");
-  Wire.write("hello");
-}
 
 // Main control function to run every 5ms
 void controlFunc(){
@@ -72,7 +66,7 @@ void controlFunc(){
 // it will come in the form (joint/angle) ex: (1/180) means set desired hip
 // angle to 180 degrees
 void receiveEvent(int howMany) {
-
+  Serial.println("Event received!");
   int i = 0;  // i starts at 0 when we are reading the first piece of data
   String data[2] = {"",""}; // Create an array to store the data (two items)
 
@@ -101,6 +95,7 @@ void receiveEvent(int howMany) {
   Serial.println(d1);
   // 1-4 define leg to send commands to, 5 kills all motors
   if(d1==5){
+    Serial.println("Killing all motors");
     m1.kill();
     m2.kill();
     m3.kill();
@@ -108,13 +103,12 @@ void receiveEvent(int howMany) {
   }
   float angVal = data[1].toFloat();
   Serial.println(angVal);
-  Serial.println(millis());
 }
 
 // Setup function
 void setup()
 {
-  // Wire.begin(80);                  // Join the I2C bus as a slave with address 80
+  Wire2.begin(80);                  // Join the I2C bus as a slave with address 80
   Serial.begin(115200);            // Boot up the serial monitor
   m1.setGains(3.0, 0.0, 1.0);      // Set PID gains for m1
   m2.setGains(3.0, 0.0, 1.0);      // Set PID gains for m2
@@ -129,9 +123,6 @@ void setup()
 // Main loop
 void loop()
 {
-
-
-
 
 }
 
