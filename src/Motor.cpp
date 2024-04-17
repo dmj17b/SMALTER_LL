@@ -74,7 +74,6 @@ void Motor::kill(){
     int DIR = this->DIR_; // The direction pin
     analogWrite(EN, 0); // Set the speed
     digitalWrite(DIR, LOW); // Set the direction
-    Serial.println("Motor Killed");
 }
 
 // Only to be used to fix the direction of the motor if it is reversed
