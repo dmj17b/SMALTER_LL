@@ -31,6 +31,10 @@ PulsePositionInput ppi;
 #define m4_ENCA 16
 #define m4_ENCB 17
 
+// I2C address for the legs:
+#define FrontLegs 80
+#define BackLegs 90
+
 
 // Variables for holding desired motor positions:
 float m1DesPos = 180;
@@ -56,23 +60,13 @@ void sendUpdate(){
 
 // Main control function to run every 5ms
 void controlFunc(){
-  //m1.posControl(m1DesPos);
-  //m2.posControl(m2DesPos);
-  //m3.posControl(m3DesPos);
-  //m4.posControl(m4DesPos);
+  m1.posControl(m1DesPos);
+  m2.posControl(m2DesPos);
+  m3.posControl(m3DesPos);
+  m4.posControl(m4DesPos);
 }
 
 
-// Function to update the angle of a joint in a leg through I2C
-void updateLeg(int leg_address, int joint, float angle){
-  char b[8];
-  dtostrf(angle, 4, 2, b);
-  Wire2.beginTransmission(leg_address);
-  Wire2.write(joint);
-  Wire2.write('/');
-  Wire2.write(b);
-  Wire2.endTransmission();
-}
 
 // Function to run every time we receive a message from the master
 // it will come in the form (joint/angle) ex: (1/180) means set desired hip
@@ -82,11 +76,11 @@ void receiveEvent(int howMany) {
   int i = 0;  // i starts at 0 when we are reading the first piece of data
   String data[2] = {"",""}; // Create an array to store the data (two items)
 
-  while (Wire.available()) { // loop through all but the last
+  while (Wire2.available()) { // loop through all but the last
 
     // i = 0 when we are reading the first piece of data
     if(i == 0){
-      byte c = Wire.read(); // receive byte as a character
+      byte c = Wire2.read(); // receive byte as a character
       // If we see the delimeter, move to the next piece of data
       if(c == '/'){
         i = 1;
@@ -98,13 +92,20 @@ void receiveEvent(int howMany) {
     // i = 1 when we are reading the second piece of data
     // This time we are reading in the float value.
     if(i == 1){
-      char c = Wire.read();
+      char c = Wire2.read();
       data[i]+=c;
     }
 
   }
   int d1 = data[0].toInt();
   Serial.println(d1);
+  // 1-4 define leg to send commands to, 5 kills all motors
+  if(d1==5){
+    m1.kill();
+    m2.kill();
+    m3.kill();
+    m4.kill();
+  }
   float angVal = data[1].toFloat();
   Serial.println(angVal);
   Serial.println(millis());
@@ -120,57 +121,15 @@ void setup()
   m3.setGains(3.0, 0.0, 1.0);      // Set PID gains for m3
   m4.setGains(3.0, 0.0, 1.0);      // Set PID gains for m4
   controlTimer.begin(controlFunc, 5000);  // Set the control function to run every 5ms
-  ppi.begin(PPM_IN_PIN); // Initialize the pulse position input object
   // Wire.onRequest(sendUpdate);
-  // Wire.onReceive(receiveEvent);
+  Wire2.onReceive(receiveEvent);
 
 }
 
 // Main loop
 void loop()
 {
-  Serial.println(ppi.read(5));
 
-  // If safety switch is detected, kill motors.
-  if(ppi.read(5)<1500){
-    m1.kill();
-    m2.kill();
-    m3.kill();
-    m4.kill();
-    
-  }
-  // If safety switch is not detected, run normal control
-  else if (ppi.read(5)>1500){
-    
-    int FB_RJ = map(ppi.read(1), 1000, 2000, -255, 255);
-    int LR_RJ = map(ppi.read(2), 1000, 2000, -255, 255);
-
-    int leftWheel = -FB_RJ + LR_RJ;
-    int rightWheel = -FB_RJ - LR_RJ;
-
-    //Constrain duty cycles to -255 to 255
-    leftWheel = constrain(leftWheel, -255, 255);
-    rightWheel = constrain(rightWheel, -255, 255);
-
-    if(leftWheel<0){
-      m1.fwdDrive(leftWheel);
-      m4.fwdDrive(leftWheel);
-    }
-    else if(leftWheel>0){
-      m1.revDrive(abs(leftWheel));
-      m4.revDrive(abs(leftWheel));
-    }
-    
-    if(rightWheel<0){
-      m2.fwdDrive(rightWheel);
-      m3.fwdDrive(rightWheel);
-    }
-    else if(rightWheel>0){
-      m2.revDrive(abs(rightWheel));
-      m3.revDrive(abs(rightWheel));
-    }
-  }
-    
 
 
 
