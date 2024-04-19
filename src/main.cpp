@@ -85,57 +85,58 @@ void setup()
   controlTimer.begin(controlFunc, 5000);  // Set the control function to run every 5ms
   ppi.begin(PPM_IN_PIN); // Initialize the pulse position input object
 
+  Wire2.setClock(100000); // Set the I2C clock speed to 100kHz
+
 }
 
 // Main loop
 void loop()
 {
-  updateLeg(80, 1, 90);
-  updateLeg(80, 2, 90);
-  updateLeg(80, 3, 90);
+  // updateLeg(4, 1, 90);
+  // updateLeg(80, 2, 90);
+  // updateLeg(80, 3, 90);
   updateLeg(80, 4, 90);
 
+  // // If safety switch is detected, kill motors
+  // if(ppi.read(5)<1500){
+  //   m1.kill();
+  //   m2.kill();
+  //   m3.kill();
+  //   m4.kill();
+  // }
 
-  // If safety switch is detected, kill motors
-  if(ppi.read(5)<1500){
-    m1.kill();
-    m2.kill();
-    m3.kill();
-    m4.kill();
-  }
-
-  // If safety switch is not detected, run normal control
-  else if (ppi.read(5)>1500){
+  // // If safety switch is not detected, run normal control
+  // else if (ppi.read(5)>1500){
     
-    int FB_RJ = map(ppi.read(1), 1000, 2000, -255, 255);
-    int LR_RJ = map(ppi.read(2), 1000, 2000, -255, 255);
+  //   int FB_RJ = map(ppi.read(1), 1000, 2000, -255, 255);
+  //   int LR_RJ = map(ppi.read(2), 1000, 2000, -255, 255);
 
-    int leftWheel = -FB_RJ + LR_RJ;
-    int rightWheel = -FB_RJ - LR_RJ;
+  //   int leftWheel = -FB_RJ + LR_RJ;
+  //   int rightWheel = -FB_RJ - LR_RJ;
 
-    //Constrain duty cycles to -255 to 255
-    leftWheel = constrain(leftWheel, -255, 255);
-    rightWheel = constrain(rightWheel, -255, 255);
+  //   //Constrain duty cycles to -255 to 255
+  //   leftWheel = constrain(leftWheel, -255, 255);
+  //   rightWheel = constrain(rightWheel, -255, 255);
 
-    if(leftWheel<0){
-      m1.fwdDrive(leftWheel);
-      m4.fwdDrive(leftWheel);
-    }
-    else if(leftWheel>0){
-      m1.revDrive(abs(leftWheel));
-      m4.revDrive(abs(leftWheel));
-    }
+  //   if(leftWheel<0){
+  //     m1.fwdDrive(leftWheel);
+  //     m4.fwdDrive(leftWheel);
+  //   }
+  //   else if(leftWheel>0){
+  //     m1.revDrive(abs(leftWheel));
+  //     m4.revDrive(abs(leftWheel));
+  //   }
     
-    if(rightWheel<0){
-      m2.fwdDrive(rightWheel);
-      m3.fwdDrive(rightWheel);
-    }
-    else if(rightWheel>0){
-      m2.revDrive(abs(rightWheel));
-      m3.revDrive(abs(rightWheel));
-    }
+  //   if(rightWheel<0){
+  //     m2.fwdDrive(rightWheel);
+  //     m3.fwdDrive(rightWheel);
+  //   }
+  //   else if(rightWheel>0){
+  //     m2.revDrive(abs(rightWheel));
+  //     m3.revDrive(abs(rightWheel));
+  //   }
 
-  }
+  // }
     
 
 }
