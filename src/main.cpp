@@ -32,8 +32,7 @@ PulsePositionInput ppi;
 #define m4_ENCB 17
 
 // I2C address for the legs:
-#define FrontLegs 80
-#define BackLegs 90
+#define Master Serial6
 
 
 // Variables for holding desired motor positions:
@@ -62,67 +61,53 @@ void controlFunc(){
 
 
 
-// Function to run every time we receive a message from the master
-// it will come in the form (joint/angle) ex: (1/180) means set desired hip
-// angle to 180 degrees
-void receiveEvent(int howMany) {
-  Serial.println("Event received!");
-  int i = 0;  // i starts at 0 when we are reading the first piece of data
-  String data[2] = {"",""}; // Create an array to store the data (two items)
-
-  while (Wire2.available()) { // loop through all but the last
-
-    // i = 0 when we are reading the first piece of data
-    if(i == 0){
-      byte c = Wire2.read(); // receive byte as a character
-      // If we see the delimeter, move to the next piece of data
-      if(c == '/'){
-        i = 1;
-        continue;
-      } 
-      // Add the character to the first data string
-      data[i]+=c;
-    }
-    // i = 1 when we are reading the second piece of data
-    // This time we are reading in the float value.
-    if(i == 1){
-      char c = Wire2.read();
-      data[i]+=c;
-    }
-
-  }
-  int d1 = data[0].toInt();
-  Serial.println(d1);
-  // 1-4 define leg to send commands to, 5 kills all motors
-  if(d1==5){
-    Serial.println("Killing all motors");
-    m1.kill();
-    m2.kill();
-    m3.kill();
-    m4.kill();
-  }
-  float angVal = data[1].toFloat();
-  Serial.println(angVal);
-}
-
 // Setup function
 void setup()
 {
-  Wire2.begin(80);                  // Join the I2C bus as a slave with address 80
   Serial.begin(115200);            // Boot up the serial monitor
+  Master.begin(9600);            // Boot up the serial monitor
   m1.setGains(3.0, 0.0, 1.0);      // Set PID gains for m1
   m2.setGains(3.0, 0.0, 1.0);      // Set PID gains for m2
   m3.setGains(3.0, 0.0, 1.0);      // Set PID gains for m3
   m4.setGains(3.0, 0.0, 1.0);      // Set PID gains for m4
   controlTimer.begin(controlFunc, 5000);  // Set the control function to run every 5ms
   // Wire.onRequest(sendUpdate);
-  Wire2.onReceive(receiveEvent);
 
 }
 
+int jointIndex;
 // Main loop
 void loop()
 {
+  static float input;
+  while(Master.available()>0){
+    int d1 = Master.parseInt();
+    input = Master.parseFloat();
+    jointIndex = d1;
+    Serial.println(jointIndex);
+
+    break;
+  }
+  switch(jointIndex){
+    case 0:
+      m1.kill();
+      m2.kill();
+      m3.kill();
+      m4.kill();
+      Serial.println("Killed all motors");
+    case 1:
+      m1DesPos = input;
+      Serial.println(input);
+      break;
+    case 2:
+      m2DesPos = input;
+      break;
+    case 3:
+      m3DesPos = input;
+      break;
+    case 4:
+      m4DesPos = input;
+      break;
+  }
 
 }
-
