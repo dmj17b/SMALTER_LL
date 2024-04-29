@@ -32,7 +32,7 @@ PulsePositionInput ppi;
 #define m4_ENCB 17
 
 // I2C address for the legs:
-#define FrontLegs 80
+#define FrontLegs Serial6
 #define BackLegs 90
 
 
@@ -73,11 +73,17 @@ void updateLeg(int leg_address, int joint, float angle){
   Wire2.endTransmission();
 }
 
+// Function to map a value from one range to another with floats
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 // Setup function
 void setup()
 {
-  Wire2.begin();                  // Join the I2C bus as master
   Serial.begin(115200);            // Boot up the serial monitor
+  FrontLegs.begin(9600);           // Boot up the serial port for the front legs
   m1.setGains(3.0, 0.0, 1.0);      // Set PID gains for m1
   m2.setGains(3.0, 0.0, 1.0);      // Set PID gains for m2
   m3.setGains(3.0, 0.0, 1.0);      // Set PID gains for m3
@@ -95,49 +101,53 @@ void loop()
   // updateLeg(4, 1, 90);
   // updateLeg(80, 2, 90);
   // updateLeg(80, 3, 90);
-  updateLeg(80, 4, 90);
+  Serial.println("Sent");
+  // If safety switch is detected, kill motors
+  if(ppi.read(5)<1500){
+    m1.kill();
+    m2.kill();
+    m3.kill();
+    m4.kill();
+    FrontLegs.println(0);
+    FrontLegs.println(0.0, 2);
+  }
 
-  // // If safety switch is detected, kill motors
-  // if(ppi.read(5)<1500){
-  //   m1.kill();
-  //   m2.kill();
-  //   m3.kill();
-  //   m4.kill();
-  // }
-
-  // // If safety switch is not detected, run normal control
-  // else if (ppi.read(5)>1500){
+  // If safety switch is not detected, run normal control
+  else if (ppi.read(5)>1500){
     
-  //   int FB_RJ = map(ppi.read(1), 1000, 2000, -255, 255);
-  //   int LR_RJ = map(ppi.read(2), 1000, 2000, -255, 255);
+    int FB_RJ = map(ppi.read(1), 1000, 2000, -255, 255);
+    int LR_RJ = map(ppi.read(2), 1000, 2000, -255, 255);
 
-  //   int leftWheel = -FB_RJ + LR_RJ;
-  //   int rightWheel = -FB_RJ - LR_RJ;
+    float FB_LJ = mapfloat(ppi.read(3), 1000, 2000, -45, 90);
+    FrontLegs.println(1);
+    FrontLegs.println(FB_LJ, 2);
 
-  //   //Constrain duty cycles to -255 to 255
-  //   leftWheel = constrain(leftWheel, -255, 255);
-  //   rightWheel = constrain(rightWheel, -255, 255);
+    int leftWheel = -FB_RJ + LR_RJ;
+    int rightWheel = -FB_RJ - LR_RJ;
 
-  //   if(leftWheel<0){
-  //     m1.fwdDrive(leftWheel);
-  //     m4.fwdDrive(leftWheel);
-  //   }
-  //   else if(leftWheel>0){
-  //     m1.revDrive(abs(leftWheel));
-  //     m4.revDrive(abs(leftWheel));
-  //   }
+    //Constrain duty cycles to -255 to 255
+    leftWheel = constrain(leftWheel, -255, 255);
+    rightWheel = constrain(rightWheel, -255, 255);
+
+    if(leftWheel<0){
+      m1.fwdDrive(leftWheel);
+      m4.fwdDrive(leftWheel);
+    }
+    else if(leftWheel>0){
+      m1.revDrive(abs(leftWheel));
+      m4.revDrive(abs(leftWheel));
+    }
     
-  //   if(rightWheel<0){
-  //     m2.fwdDrive(rightWheel);
-  //     m3.fwdDrive(rightWheel);
-  //   }
-  //   else if(rightWheel>0){
-  //     m2.revDrive(abs(rightWheel));
-  //     m3.revDrive(abs(rightWheel));
-  //   }
+    if(rightWheel<0){
+      m2.fwdDrive(rightWheel);
+      m3.fwdDrive(rightWheel);
+    }
+    else if(rightWheel>0){
+      m2.revDrive(abs(rightWheel));
+      m3.revDrive(abs(rightWheel));
+    }
 
-  // }
+  }
     
-
 }
 
