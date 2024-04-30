@@ -79,6 +79,7 @@ int jointIndex;
 // Main loop
 void loop()
 {
+  controlTimer.start();
   static float input;
   while(Master.available()>0){
     int d1 = Master.parseInt();
@@ -94,6 +95,7 @@ void loop()
       m2.kill();
       m3.kill();
       m4.kill();
+      controlTimer.stop();
       Serial.println("Killed all motors");
     case 1:
       m1DesPos = input;
@@ -107,6 +109,9 @@ void loop()
       break;
     case 4:
       m4DesPos = input;
+      break;
+    default:
+      controlTimer.stop();
       break;
   }
 
