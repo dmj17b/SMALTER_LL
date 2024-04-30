@@ -6,7 +6,7 @@ using namespace TeensyTimerTool;
 #include <Wire.h>
 
 PulsePositionInput ppi;
-#define PPM_IN_PIN 9
+#define PPM_IN_PIN 14
 
 
 // Motor pin definitions
@@ -33,7 +33,7 @@ PulsePositionInput ppi;
 
 // I2C address for the legs:
 #define FrontLegs Serial6
-#define BackLegs 90
+#define BackLegs Serial7
 
 
 // Variables for holding desired motor positions:
@@ -52,27 +52,6 @@ Motor m3 = Motor(m3_EN, m3_DIR, m3_ENCA, m3_ENCB);
 Motor m4 = Motor(m4_EN, m4_DIR, m4_ENCA, m4_ENCB);
 
 
-// Main control function to run every 5ms
-// (unused for wheel motors)
-void controlFunc(){
-  //m1.posControl(m1DesPos);
-  //m2.posControl(m2DesPos);
-  //m3.posControl(m3DesPos);
-  //m4.posControl(m4DesPos);
-}
-
-
-// Function to update the angle of a joint in a leg through I2C
-void updateLeg(int leg_address, int joint, float angle){
-  char b[8];
-  dtostrf(angle, 4, 2, b);
-  Wire2.beginTransmission(leg_address);
-  Wire2.write(joint);
-  Wire2.write('/');
-  Wire2.write(b);
-  Wire2.endTransmission();
-}
-
 // Function to map a value from one range to another with floats
 float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
 {
@@ -84,43 +63,54 @@ void setup()
 {
   Serial.begin(115200);            // Boot up the serial monitor
   FrontLegs.begin(9600);           // Boot up the serial port for the front legs
+  BackLegs.begin(9600);            // Boot up the serial port for the back legs
   m1.setGains(3.0, 0.0, 1.0);      // Set PID gains for m1
   m2.setGains(3.0, 0.0, 1.0);      // Set PID gains for m2
   m3.setGains(3.0, 0.0, 1.0);      // Set PID gains for m3
   m4.setGains(3.0, 0.0, 1.0);      // Set PID gains for m4
-  controlTimer.begin(controlFunc, 5000);  // Set the control function to run every 5ms
   ppi.begin(PPM_IN_PIN); // Initialize the pulse position input object
 
   Wire2.setClock(100000); // Set the I2C clock speed to 100kHz
 
 }
+float kneeDesPos = 0;
+float maxKneeVel = 5;
 
 // Main loop
 void loop()
 {
-  // updateLeg(4, 1, 90);
-  // updateLeg(80, 2, 90);
-  // updateLeg(80, 3, 90);
-  Serial.println("Sent");
-  // If safety switch is detected, kill motors
+  // First: if safety switch is detected, kill wheel motors and send kill command to slaves
   if(ppi.read(5)<1500){
     m1.kill();
     m2.kill();
     m3.kill();
     m4.kill();
     FrontLegs.println(0);
-    FrontLegs.println(0.0, 2);
+    FrontLegs.println(0.0);
+    BackLegs.println(0);
+    BackLegs.println(0.0);
   }
 
   // If safety switch is not detected, run normal control
   else if (ppi.read(5)>1500){
     
+    // Read the joystick values and map them to the desired wheel duty cycles
     int FB_RJ = map(ppi.read(1), 1000, 2000, -255, 255);
     int LR_RJ = map(ppi.read(2), 1000, 2000, -255, 255);
 
-    float FB_LJ = mapfloat(ppi.read(3), 1000, 2000, -45, 90);
-    FrontLegs.println(1);
-    FrontLegs.println(FB_LJ, 2);
+    // Read left joystick and map to desired knee velocity
+    float FB_LJ = mapfloat(ppi.read(3), 1000, 2000, -maxKneeVel, maxKneeVel);
+    kneeDesPos+=FB_LJ;
+
+
+    FrontLegs.println(4);
+    FrontLegs.println(kneeDesPos, 2);
+    FrontLegs.println(2);
+    FrontLegs.println(kneeDesPos, 2);
+    BackLegs.println(1);
+    BackLegs.println(FB_LJ, 2);
+    BackLegs.println(3);
+    BackLegs.println(FB_LJ, 2);
 
     int leftWheel = -FB_RJ + LR_RJ;
     int rightWheel = -FB_RJ - LR_RJ;
@@ -129,6 +119,7 @@ void loop()
     leftWheel = constrain(leftWheel, -255, 255);
     rightWheel = constrain(rightWheel, -255, 255);
 
+    // Drive the motors
     if(leftWheel<0){
       m1.fwdDrive(leftWheel);
       m4.fwdDrive(leftWheel);
