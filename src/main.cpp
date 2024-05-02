@@ -99,18 +99,19 @@ void loop()
     int LR_RJ = map(ppi.read(2), 1000, 2000, -255, 255);
 
     // Read left joystick and map to desired knee velocity
-    float FB_LJ = mapfloat(ppi.read(3), 1000, 2000, -maxKneeVel, maxKneeVel);
-    kneeDesPos+=FB_LJ;
+    float FB_LJ = mapfloat(ppi.read(3), 1000, 2000, -50, 50);
 
 
     FrontLegs.println(4);
-    FrontLegs.println(kneeDesPos, 2);
+    FrontLegs.println(FB_LJ, 2);
     FrontLegs.println(2);
-    FrontLegs.println(kneeDesPos, 2);
-    BackLegs.println(1);
-    BackLegs.println(FB_LJ, 2);
-    BackLegs.println(3);
-    BackLegs.println(FB_LJ, 2);
+    FrontLegs.println(FB_LJ, 2);
+
+    FrontLegs.println(1);
+    FrontLegs.println(FB_LJ, 2);
+    FrontLegs.println(3);
+    FrontLegs.println(FB_LJ, 2);
+
 
     int leftWheel = -FB_RJ + LR_RJ;
     int rightWheel = -FB_RJ - LR_RJ;
