@@ -10,52 +10,56 @@ PulsePositionInput ppi;
 
 
 // Motor pin definitions
-#define leftHip_EN 5
-#define leftHip_DIR 6
-#define leftHip_ENCA 2
-#define leftHip_ENCB 7
+#define lefthip_EN 5
+#define lefthip_DIR 6
+#define lefthip_ENCA 2
+#define lefthip_ENCB 7
 
-#define leftKnee_EN 3
-#define leftKnee_DIR 4
-#define leftKnee_ENCA 0
-#define leftKnee_ENCB 1
+#define rightknee_EN 3
+#define rightknee_DIR 4
+#define rightknee_ENCA 0
+#define rightknee_ENCB 1
 
-#define rightHip_EN 23
-#define rightHip_DIR 22
-#define rightHip_ENCA 18
-#define rightHip_ENCB 19
+#define leftknee_EN 23
+#define leftknee_DIR 22
+#define leftknee_ENCA 18
+#define leftknee_ENCB 19
 
-#define rightKnee_EN 15
-#define rightKnee_DIR 20
-#define rightKnee_ENCA 16
-#define rightKnee_ENCB 17
+#define righthip_EN 15
+#define righthip_DIR 20
+#define righthip_ENCA 16
+#define righthip_ENCB 17
 
 // I2C address for the legs:
 #define Master Serial6
 
 
 // Variables for holding desired motor positions:
-float leftHipDesPos = 0;
-float leftKneeDesPos = 0;
-float rightHipDesPos = 0;
-float rightKneeDesPos = 0;
+float lefthipDesPos = 0;
+float rightkneeDesPos = 0;
+float leftkneeDesPos = 0;
+float righthipDesPos = 0;
+float rightkneeDuty = 0;
+float leftkneeDuty = 0;
+float leftkneeVel = 0;
+float rightkneeVel = 0;
 
 // Create a timer object to control the control loop
 PeriodicTimer controlTimer;
 
 // Create a motor object for the knee motor
-Motor leftHip = Motor(leftHip_EN, leftHip_DIR, leftHip_ENCA, leftHip_ENCB);
-Motor leftKnee = Motor(leftKnee_EN, leftKnee_DIR, leftKnee_ENCA, leftKnee_ENCB);
-Motor rightHip = Motor(rightHip_EN, rightHip_DIR, rightHip_ENCA, rightHip_ENCB);
-Motor rightKnee = Motor(rightKnee_EN, rightKnee_DIR, rightKnee_ENCA, rightKnee_ENCB);
+Motor lefthip = Motor(lefthip_EN, lefthip_DIR, lefthip_ENCA, lefthip_ENCB);
+Motor rightknee = Motor(rightknee_EN, rightknee_DIR, rightknee_ENCA, rightknee_ENCB);
+Motor leftknee = Motor(leftknee_EN, leftknee_DIR, leftknee_ENCA, leftknee_ENCB);
+Motor righthip = Motor(righthip_EN, righthip_DIR, righthip_ENCA, righthip_ENCB);
 
 
 // Main control function to run every 5ms
 void controlFunc(){
-  leftHip.posControl(leftHipDesPos);
-  leftKnee.posControl(leftKneeDesPos);
-  rightHip.posControl(rightHipDesPos);
-  rightKnee.posControl(rightKneeDesPos);
+  lefthip.posControl(lefthipDesPos);
+  righthip.posVelControl(righthipDesPos);
+  leftknee.posVelControl(leftkneeDesPos);
+  rightknee.posControl(rightkneeDesPos);
 }
 
 
@@ -64,20 +68,23 @@ void controlFunc(){
 void setup()
 {
   Serial.begin(115200);            // Boot up the serial monitor
-  Master.begin(9600);            // Boot up the serial monitor
-  leftHip.setGains(4.0, 0.25, 2.0);      // Set PID gains for leftHip
-  leftHip.setGearReduction((360*16)/(12*379.17*40));
+  Master.begin(1000000
+  );            // Boot up the serial monitor
 
-  leftKnee.setGains(4.0, 0.25, 2.0);      // Set PID gains for leftKnee
-  leftKnee.setGearReduction((360*20)/(12*379.17*48));
+  // Initialize the motor objects, set gains, and set gear reductions
+  lefthip.setGains(4.0, 0.25, 2.0);      // Set PID gains for lefthip
+  lefthip.setGearReduction((360*16)/(12*379.17*40));
 
-  rightHip.setGains(4.0, 0.25, 2.0);      // Set PID gains for rightHip
-  rightHip.setGearReduction((360*16)/(12*379.17*40));
+  rightknee.setGains(4.0, 0, 2.0);      // Set PID gains for rightknee
+  rightknee.setGearReduction((360*20)/(12*379.17*48));
 
-  rightKnee.setGains(4.0, 0.25, 2.0);      // Set PID gains for rightKnee
-  rightKnee.setGearReduction((360*20)/(12*379.17*48));
+  leftknee.setGains(4.0, 0, 2.0);      // Set PID gains for leftknee
+  leftknee.setGearReduction((360*16)/(12*379.17*40));
 
+  righthip.setGains(4.0, 0.25, 2.0);      // Set PID gains for righthip
+  righthip.setGearReduction((360*20)/(12*379.17*48));
 
+  // Start the control timer
   controlTimer.begin(controlFunc, 5000);  // Set the control function to run every 5ms
 
 }
@@ -100,10 +107,10 @@ void loop()
 
   // Check if the jointIndex is 0, if so, kill all motors
   if(jointIndex == 0){
-    leftHip.kill();
-    leftKnee.kill();
-    rightHip.kill();
-    rightKnee.kill();
+    lefthip.kill();
+    rightknee.kill();
+    leftknee.kill();
+    righthip.kill();
     controlTimer.stop();
     Serial.println("Killed all motors");
   }
@@ -114,28 +121,31 @@ void loop()
   // Either way, switch on the jointIndex to set the desired position of the motor
   switch(jointIndex){
     case 0:
-      leftHip.kill();
-      leftKnee.kill();
-      rightHip.kill();
-      rightKnee.kill();
+      lefthip.kill();
+      rightknee.kill();
+      leftknee.kill();
+      righthip.kill();
       Serial.println("Killed all motors");
     case 1:
-      leftHipDesPos = input;
+      lefthipDesPos = input;
       break;
     case 2:
-      leftKneeDesPos = input;
+      rightkneeDesPos += input;
+      break;
+      
       break;
     case 3:
-      rightHipDesPos = input;
+      leftkneeDesPos += input;
       break;
+
     case 4:
-      rightKneeDesPos = input;
+      righthipDesPos = input;
       break;
     default:
-      leftHip.kill();
-      leftKnee.kill();
-      rightHip.kill();
-      rightKnee.kill();
+      lefthip.kill();
+      rightknee.kill();
+      leftknee.kill();
+      righthip.kill();
       Serial.println("Killed all motors");
       break;
   }

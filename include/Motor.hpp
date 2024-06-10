@@ -42,6 +42,7 @@ public:
     int motorPos();                                  // Get the position of the motor encoder (in ticks)
     void setGains(float Kp, float Ki, float Kd);      // Set the PID gains
     void posControl(float desPos);                    // Control the position of the motor
+    void posVelControl(float desPos);   // Control the position and velocity of the motor
     float shaftPos();                                // Get the position of the motor in degrees
 
 private:
