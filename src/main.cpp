@@ -6,7 +6,7 @@ using namespace TeensyTimerTool;
 #include <Wire.h>
 
 PulsePositionInput ppi;
-#define PPM_IN_PIN 14
+#define PPM_IN_PIN 9
 
 
 // Motor pin definitions
@@ -32,8 +32,8 @@ PulsePositionInput ppi;
 #define m4_ENCB 17
 
 // I2C address for the legs:
-#define FrontLegs Serial6
-#define BackLegs Serial7
+#define BackLegs Serial6
+#define FrontLegs Serial7
 
 
 // Variables for holding desired motor positions:
@@ -62,25 +62,25 @@ float mapfloat(float x, float in_min, float in_max, float out_min, float out_max
 void setup()
 {
   Serial.begin(115200);            // Boot up the serial monitor
-  FrontLegs.begin(9600);           // Boot up the serial port for the front legs
-  BackLegs.begin(9600);            // Boot up the serial port for the back legs
+  FrontLegs.begin(1000000);           // Boot up the serial port for the front legs
+  BackLegs.begin(1000000);            // Boot up the serial port for the back legs
   m1.setGains(3.0, 0.0, 1.0);      // Set PID gains for m1
   m2.setGains(3.0, 0.0, 1.0);      // Set PID gains for m2
   m3.setGains(3.0, 0.0, 1.0);      // Set PID gains for m3
   m4.setGains(3.0, 0.0, 1.0);      // Set PID gains for m4
   ppi.begin(PPM_IN_PIN); // Initialize the pulse position input object
 
-  Wire2.setClock(100000); // Set the I2C clock speed to 100kHz
 
 }
 float kneeDesPos = 0;
-float maxKneeVel = 5;
+float maxKneeVel = 0.1;
 
 // Main loop
 void loop()
 {
   // First: if safety switch is detected, kill wheel motors and send kill command to slaves
   if(ppi.read(5)<1500){
+    Serial.println("Safety on!");
     m1.kill();
     m2.kill();
     m3.kill();
@@ -93,26 +93,23 @@ void loop()
 
   // If safety switch is not detected, run normal control
   else if (ppi.read(5)>1500){
-    
     // Read the joystick values and map them to the desired wheel duty cycles
     int FB_RJ = map(ppi.read(1), 1000, 2000, -255, 255);
     int LR_RJ = map(ppi.read(2), 1000, 2000, -255, 255);
 
-    // Read left joystick and map to desired knee velocity
-    float FB_LJ = mapfloat(ppi.read(3), 1000, 2000, -50, 50);
-
+    // Read ch6 knob and map to hip angles
+    float HipSplay = mapfloat(ppi.read(6), 1000, 2000, -20, 80);
+    BackLegs.println(4);
+    BackLegs.println(HipSplay, 2);
+    BackLegs.println(1);
+    BackLegs.println(-HipSplay, 2);
 
     FrontLegs.println(4);
-    FrontLegs.println(FB_LJ, 2);
-    FrontLegs.println(2);
-    FrontLegs.println(FB_LJ, 2);
-
+    FrontLegs.println(-HipSplay, 2);
     FrontLegs.println(1);
-    FrontLegs.println(FB_LJ, 2);
-    FrontLegs.println(3);
-    FrontLegs.println(FB_LJ, 2);
+    FrontLegs.println(HipSplay, 2);
 
-
+    // Read right joystick and map to knee angles
     int leftWheel = -FB_RJ + LR_RJ;
     int rightWheel = -FB_RJ - LR_RJ;
 
@@ -120,23 +117,52 @@ void loop()
     leftWheel = constrain(leftWheel, -255, 255);
     rightWheel = constrain(rightWheel, -255, 255);
 
+    // Map left joystick to knee velocities:
+    float kneeVel = mapfloat(ppi.read(3),1000,2000,0,maxKneeVel);
+    float kneeLR = mapfloat(ppi.read(4),1000,2000,-maxKneeVel/2,maxKneeVel/2);
+    if(ppi.read(3)<1010){
+      kneeVel = 0;
+    }
+
+    kneeDesPos+=kneeVel;
+    if(kneeLR<0){    
+      BackLegs.println(2);
+      BackLegs.println(kneeVel-kneeLR, 2);
+      FrontLegs.println(2);
+      FrontLegs.println(kneeVel-kneeLR, 2);
+      BackLegs.println(3);
+      BackLegs.println(-kneeVel, 2);
+      FrontLegs.println(3);
+      FrontLegs.println(-kneeVel, 2);
+      }
+    if(kneeLR>0){
+      BackLegs.println(3);
+      BackLegs.println(-kneeVel-kneeLR, 2);
+      FrontLegs.println(3);
+      FrontLegs.println(-kneeVel-kneeLR, 2);
+      BackLegs.println(2);
+      BackLegs.println(kneeVel, 2);
+      FrontLegs.println(2);
+      FrontLegs.println(kneeVel, 2);
+      }
+
     // Drive the motors
     if(leftWheel<0){
       m1.fwdDrive(leftWheel);
-      m4.fwdDrive(leftWheel);
+      m2.fwdDrive(leftWheel);
     }
     else if(leftWheel>0){
       m1.revDrive(abs(leftWheel));
-      m4.revDrive(abs(leftWheel));
+      m2.revDrive(abs(leftWheel));
     }
     
     if(rightWheel<0){
-      m2.fwdDrive(rightWheel);
       m3.fwdDrive(rightWheel);
+      m4.fwdDrive(rightWheel);
     }
     else if(rightWheel>0){
-      m2.revDrive(abs(rightWheel));
       m3.revDrive(abs(rightWheel));
+      m4.revDrive(abs(rightWheel));
     }
 
   }
