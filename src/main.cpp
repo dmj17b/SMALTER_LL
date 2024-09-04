@@ -125,26 +125,26 @@ void loop()
     }
 
     kneeDesPos+=kneeVel;
-    if(kneeLR<0){    
-      BackLegs.println(2);
-      BackLegs.println(kneeVel-kneeLR, 2);
-      FrontLegs.println(2);
-      FrontLegs.println(kneeVel-kneeLR, 2);
-      BackLegs.println(3);
-      BackLegs.println(-kneeVel, 2);
-      FrontLegs.println(3);
-      FrontLegs.println(-kneeVel, 2);
-      }
-    if(kneeLR>0){
-      BackLegs.println(3);
-      BackLegs.println(-kneeVel-kneeLR, 2);
-      FrontLegs.println(3);
-      FrontLegs.println(-kneeVel-kneeLR, 2);
-      BackLegs.println(2);
-      BackLegs.println(kneeVel, 2);
-      FrontLegs.println(2);
-      FrontLegs.println(kneeVel, 2);
-      }
+
+    // Send the desired knee positions to the legs
+    BackLegs.println(2);
+    BackLegs.println(kneeVel-kneeLR, 2);
+    FrontLegs.println(2);
+    FrontLegs.println(kneeVel-kneeLR, 2);
+    BackLegs.println(3);
+    BackLegs.println(-kneeVel, 2);
+    FrontLegs.println(3);
+    FrontLegs.println(-kneeVel, 2);
+  
+    BackLegs.println(3);
+    BackLegs.println(-kneeVel-kneeLR, 2);
+    FrontLegs.println(3);
+    FrontLegs.println(-kneeVel-kneeLR, 2);
+    BackLegs.println(2);
+    BackLegs.println(kneeVel, 2);
+    FrontLegs.println(2);
+    FrontLegs.println(kneeVel, 2);
+      
 
     // Drive the motors
     if(leftWheel<0){
